@@ -1,0 +1,25 @@
+text.usetex: True
+font.family: serif
+font.serif: Computer Modern
+xtick.direction: in
+ytick.direction: in
+xtick.top: True
+ytick.right: True
+xtick.minor.visible: True
+ytick.minor.visible: True
+xtick.minor.size: 5
+ytick.minor.size: 5
+xtick.major.size: 10
+ytick.major.size: 10
+xtick.labelsize: 16
+ytick.labelsize: 16
+axes.labelsize: 16
+axes.titlesize: 18
+figure.figsize: 9,7
+legend.fontsize: 14
+legend.frameon: False
+lines.linewidth: 2.5
+lines.markersize: 6
+lines.marker: x
+lines.linestyle: None
+figure.dpi: 150
