@@ -45,5 +45,5 @@ dependencies=[ # Would automatically install these three packages when we build 
 
 
 [project.urls] # Helpful Links Related to Package
-"Homepage" = "--"
+"Homepage" = "https://github.com/loudasnick/GALFRB"
 
