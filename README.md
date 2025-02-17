@@ -17,7 +17,7 @@ GALFRB is a project aimed at unveiling the origing of Fast Radio Bursts (FRBs) b
 
 To get started with GALFRB, follow these steps:
 
-1. Clone the repository: `git clone https://github.com/your-username/GALFRB.git`
+1. Clone the repository: `git clone https://github.com/loudasnick/GALFRB.git`
 2. Navigate to GALFRB directory: `cd GALFRB/`
 3. Create a new conda environment devoted for executing GALFRB: `conda create -n GALFRB_evn python==3.8.19 ipykernel`
 4. Activate conda env: `conda activate GALFRB_evn` <!-- 2. Install the required dependencies: `pip install -r requirements.txt` -->
