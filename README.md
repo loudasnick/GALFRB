@@ -18,10 +18,9 @@ GALFRB is a project aimed at unveiling the origing of Fast Radio Bursts (FRBs) b
 To get started with GALFRB, follow these steps:
 
 1. Clone the repository: `git clone https://github.com/your-username/GALFRB.git`
-2. Navigate to GALFRB directory.
+2. Navigate to GALFRB directory: `cd GALFRB/`
 3. Create a new conda environment devoted for executing GALFRB: `conda env create -f environment.yml`
-4. Activate conda env: `conda activate galfrb_evn`
-<!-- 2. Install the required dependencies: `pip install -r requirements.txt` -->
+4. Activate conda env: `conda activate galfrb_evn` <!-- 2. Install the required dependencies: `pip install -r requirements.txt` -->
 5. Install GALFRB: `pip install -e .`
 6. Download SDSS+WISE galaxy catalog (used in modeling the ): `python download_sdss_wise_data.py`
 7. Run the tutorial found in `examples/` to verify the correct installation of the package

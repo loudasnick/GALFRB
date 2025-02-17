@@ -1,41 +1,26 @@
 # imports
-from importlib import reload
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
 import seaborn as sns
 import os
 import sys
 import h5py
 from datetime import date
-from scipy.optimize import newton, brentq # root finder
 from scipy.stats import ks_2samp
-from tabulate import tabulate
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from . import utils as utls # helper functions
-
 import warnings
 # Suppress specific warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-#plt.style.use("nick_style")
-
-
 from astropy import units
-from astropy.table import Table
 from astropy.cosmology import FlatLambdaCDM # https://docs.astropy.org/en/stable/cosmology/index.html
 from astropy.cosmology import z_at_value 
 cosmo = FlatLambdaCDM(H0=70, Om0=0.3) # define the cosmology to be used in this script
 
 from scipy.integrate import cumtrapz
-from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
-
-from scipy.special import beta as sp_beta
-import math
+from scipy.interpolate import interp1d
 sign = lambda x: 2*np.heaviside(x, 0.5) - 1 # define sign function
-
 from tqdm import tqdm
-
 # load the Neural Network of leja+22 which computes the proabability density function in the parameter space logmstar - logsfr - redshift
 # Add the 'libs' directory to sys.path
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..", "libs"))
@@ -135,63 +120,8 @@ def Gen_mock_gal(Nsample     = 1000,
     ''' 
     if mfunc_ref not in ['Leja', 'Schechter'] : raise Exception("The mfunc_ref option you chose is currently not available")
     #----------
-    # old way using numerical intergation + root finder    
-    
-    # def cum_mfunc(z=None, mlow=10**(6.5), mhigh=10**(12.5), bins=3000) :
-    #     '''
-    #     Compute the cumulative distribution function
-    #     of the stellar mass function
-    #     '''
+   
 
-    #     if mhigh < mlow or mhigh > 10**(12.5) : return -np.inf
-    #     mstar = np.logspace(np.log10(mlow), np.log10(mhigh), bins)
-    #     pz = Phi_Leja(logm=np.log10(mstar), z=z)
-    #     norm = 0.
-
-    #     #norm = cumtrapz(pz, mstar, initial=0)#[-1]
-    #     for i in range(len(mstar) - 1)  : # apply trapezoidal integration -- 2nd order 
-    #         norm += (pz[i] + pz[i+1]) * (mstar[i+1] - mstar[i]) / 2. 
-
-    #     print("integral = ", norm, f"mstar={mhigh:.3e}")
-    #     return norm
-
-
-    # def draw_Mstar(r=None, norm=1., z=None, mfunc_ref='Leja'): 
-
-    #     print(f"r={r}")
-
-    #     draw = brentq(lambda x: (cum_mfunc(z=z, mhigh=10**x)/ norm) - r, a=6.5, b=12.5, maxiter=100, xtol=1e-3)
-    #     #draw = newton(lambda x: (cum_mfunc(z=z, mhigh=10**x)/ norm) - r, x0 = (6. + 5*r), maxiter=100, tol=1e-3)
-
-    #     return 10**draw 
-
-
-    # def generate_background_galaxies(Nsample=1, z_arr=[0]) :
-    
-    #     draws = np.ndarray(shape=(len(z_arr), Nsample), dtype=np.float64)
-    #     for i, zi in zip(range(len(z_arr)), z_arr) :
-    #         k = 0
-    #         norm = cum_mfunc(z=zi)
-            
-    #         #mstar = np.logspace(6.5, 12.5, 3000)
-    #         #pz = Phi_Leja(logm=np.log10(mstar), z=zi)
-    #         #cdf_values = cumtrapz(pz, mstar, initial=0)
-    #         #cdf_values /= cdf_values[-1]  # Normalize the CDF to 1
-    #         # Create an interpolation function for the inverse CDF
-    #         #inverse_cdf = interp1d(cdf_values, mstar, bounds_error=False, fill_value=(10**(6.5), 10**(12.5)))
-
-
-    #         for ri in np.random.random(size=Nsample) :
-    #             #draws[i,k] = inverse_cdf(ri) 
-    #             draws[i,k] = draw_Mstar(r=ri, norm = norm, z=zi) 
-    #             k+=1
-        
-    #     plt.hist(draws[0], density=True, bins=np.logspace(6,13,100))
-    #     #plt.plot(np.linspace(7,12,100) , Phi_Leja(logm=np.linspace(7,12,100), z=zi))
-
-    #     plt.yscale('log'); plt.xscale('log')
-
-    #     return draws
 
 
     #-----------
