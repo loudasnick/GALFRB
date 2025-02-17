@@ -5,7 +5,7 @@ Welcome to the GALFRB repository!
 <p align="center">
   <img src="FRB_sketch.jpg" alt="Description" width="1000">
   <br>
-  <em>Artist’s impression of CSIRO’s Australian SKA Pathfinder (ASKAP) radio telescope finding a fast radio burst and determining its precise location. The KECK, VLT and Gemini South optical telescopes joined ASKAP with follow-up observations to image the host galaxy. Credit: CSIRO/Dr Andrew Howells</em>
+  <span style="font-size: 12px;"><em>Artist’s impression of CSIRO’s Australian SKA Pathfinder (ASKAP) radio telescope finding a fast radio burst and determining its precise location. The KECK, VLT and Gemini South optical telescopes joined ASKAP with follow-up observations to image the host galaxy. Credit: CSIRO/Dr Andrew Howells</em></span>span>
 </p>
 
 
