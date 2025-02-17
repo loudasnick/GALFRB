@@ -2,6 +2,13 @@
 
 Welcome to the GALFRB repository!
 
+<p align="center">
+  <img src="FRB_sketch.jpg" alt="Description" width="400">
+  <br>
+  <em>Figure 1: Your legend text here</em>
+</p>
+
+
 ## Description
 
 GALFRB is a project aimed at unveiling the origing of Fast Radio Bursts (FRBs) by modeling their hosts' properties. This repository contains flexible modules for generating joint distributions of the properties of mock galaxies to compare with FRB hosts and provide stringent constraints on their origin.
