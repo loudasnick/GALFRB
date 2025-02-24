@@ -1,6 +1,6 @@
 # GALFRB
 
-Welcome to the GALFRB repository!
+Welcome to the GALFRB repository! 
 
 <p align="center">
   <img src="FRB_sketch.jpg" alt="Description" width="1000">
@@ -13,7 +13,11 @@ Welcome to the GALFRB repository!
 
 GALFRB is a project aiming to unveiling the origing of Fast Radio Bursts (FRBs) by modeling their hosts' properties. With improved localization precision a considerable amount of FRBs are now associated with host galaxies. Their stellar mass $M_\star$ and star formation (SF) distribution encode important information related to the formation channel of FRBs.
 
-This repository contains flexible modules for generating joint distributions of the properties of mock galaxies to compare with FRB hosts and provide stringent constraints on their origin. \textit{Not limited to FRBs, this code can be also applied to studies of any kind of transient, extragalactic phenomena (e.g., gamma-ray bursts), so long as their host galaxies are identified.}
+This repository contains flexible modules for generating joint distributions of the properties of mock galaxies to compare with FRB hosts and provide stringent constraints on their origin. *Not limited to FRBs, this code can be also applied to studies of any kind of transient, extragalactic phenomena (e.g., gamma-ray bursts), so long as their host galaxies are identified.*
+
+The main paper of this project can be found here: [Unveiling the origin of fast radio bursts by modeling the stellar mass and star formation distributions of their host galaxies](https://arxiv.org/abs/2502.15566). 
+
+
 
 ## Installation and Usage
 
@@ -63,7 +67,7 @@ GFRB.mock_realization()
 Input parameters of `mock_realization()` routine:
 
 - `zbins`: the redshift values separating the bins (number of bins = len(zbins) - 1)
-- `zgal`: the redshift at which each mock galaxy lies for each bin (applicable and useful only when space_dist='delta')
+- `zgal`: the redshift at which each mock galaxy lies for each bin (applicable and useful only when `space_dist='delta'`)
 - `Nsample`: number of mock galaxies per mock galaxy realization and per redshift bin
 - `weight`: weight function to be used in the sampling distribution function (current options: 'SFR', 'mass', 'uniform')
 - `save`: flag for storing the figure
