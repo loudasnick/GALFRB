@@ -19,7 +19,7 @@ The main paper of this project can be found here: [Unveiling the origin of fast 
 
 
 
-## Installation and Usage
+## Installation
 
 To get started with GALFRB, follow these steps:
 
@@ -86,8 +86,8 @@ Input parameters of `mock_realization()` routine:
 - `ks_test`: If True, the Kolmogorov-smirnoff test is carried out
 - `sfr_sampling`: flag to sample sfr value for each mock generated galaxy (used to obtain color)
 - `space_dist`: Distribution of mock galaxies in space (current options: 'uniform-vol', 'delta', 'uniform-z'). The 'uniform' mode is outdated.
-- `z_min`: array of min redshift value in each redshift bin
-- `z_max`: array of max redshift value in each redshift bin
+- `z_min`: odd parameter (set to `None`). It will be removed in the future
+- `z_max`: odd parameter (set to `None`). It will be removed in the future
 - `p_dens_params`: various parameters used to sample the PDF in logm-logsfr-z,
 - `p_prob_arr`: PDF in logm-logsfr-z space (Leja et al. 2022) 
 - `p_z_arr`: redshift array in logm-logsfr-z grid space 
@@ -102,6 +102,10 @@ Input parameters of `mock_realization()` routine:
 - `plot_M_L`: flag to plot the mass-to-light distribution and other related quantities
 - `store_output`: flag to store all samples into an h5 data file
 
+
+### Access stored output data
+
+To access and manipulate the output files, you can refer to the jupyter-notebook `examples/data_postprocessing.ipynb`. This notebook provides a tutorial on how to work with the stored output data. It includes instructions on accessing the files and performing various calculations with the data. Make sure to follow the steps outlined in the notebook to effectively utilize the stored data.
 
 
 ## Contributing
