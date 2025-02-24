@@ -11,15 +11,19 @@ Welcome to the GALFRB repository!
 
 ## Description
 
-GALFRB is a project aimed at unveiling the origing of Fast Radio Bursts (FRBs) by modeling their hosts' properties. This repository contains flexible modules for generating joint distributions of the properties of mock galaxies to compare with FRB hosts and provide stringent constraints on their origin.
+GALFRB is a project aiming to unveiling the origing of Fast Radio Bursts (FRBs) by modeling their hosts' properties. With improved localization precision a considerable amount of FRBs are now associated with host galaxies. Their stellar mass $M_\star$ and star formation (SF) distribution encode important information related to the formation channel of FRBs.
+
+This repository contains flexible modules for generating joint distributions of the properties of mock galaxies to compare with FRB hosts and provide stringent constraints on their origin. \textit{Not limited to FRBs, this code can be also applied to studies of any kind of transient, extragalactic phenomena (e.g., gamma-ray bursts), so long as their host galaxies are identified.}
 
 ## Installation and Usage
 
 To get started with GALFRB, follow these steps:
 
+### Installation through `conda`
+
 1. Clone the repository: `git clone https://github.com/loudasnick/GALFRB.git`
 2. Navigate to GALFRB directory: `cd GALFRB/`
-3. Create a new conda environment devoted for executing GALFRB: `conda create -n GALFRB_evn python==3.8.19 ipykernel`
+3. Create a new conda environment devoted to executing GALFRB: `conda create -n GALFRB_evn python==3.8.19 ipykernel`
 4. Activate conda env: `conda activate GALFRB_evn` <!-- 2. Install the required dependencies: `pip install -r requirements.txt` -->
 5. Install required libraries: `pip install -r requirements.txt`
 6. Install GALFRB: `pip install -e .`
@@ -28,10 +32,22 @@ To get started with GALFRB, follow these steps:
 
 You are all set!
 
+### Installation through `pyenv`
+
+1. Clone the repository: `git clone https://github.com/loudasnick/GALFRB.git`
+2. Navigate to GALFRB directory: `cd GALFRB/`
+3. Install necessary python version `pyenv install 3.8.18`
+4. Create a virtual environment devoted to executing GALFRB: `pyenv virtualenv 3.8.18 GalFRB`
+5. Activate virtual env: `pyenv activate GalFRB`
+6. Install required libraries: `pyenv exec pip install -r requirements.txt`
+7. Install GALFRB: `pyenv exec pip install -e .`
+8. Download SDSS+WISE galaxy catalog (used in modeling the probability density in color-sfr plane): `python download_sdss_wise_data.py`
+9. Run the tutorial found in `examples/` to verify the correct installation of the package
+
+
 ## Contributing
 
 We welcome contributions from the community! 
-<!--If you would like to contribute to GALFRB, please follow our [contribution guidelines](CONTRIBUTING.md). -->
 
 ## License
 
