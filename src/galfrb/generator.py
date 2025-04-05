@@ -165,7 +165,11 @@ def Gen_mock_gal(Nsample     = 1000,
             sfr_i = np.random.normal(loc=sfr_mode_i, scale=hybrid_sigma)
         
         elif ( np.log10(mstar_i) < logm_comp - 0.2 ) and ( completeness_handling == 'sharma-like' ) and (z>0.2): 
-            posterior_dens_at_mcomp = posterior_interp(lgsfr_grid, logm_comp) #load pdf in logm_comp
+
+            # weight the PDF by SFR if weight is 'SFR'
+            weight_factor = 10**lgsfr_grid if weight=='SFR' else 1 
+
+            posterior_dens_at_mcomp = weight_factor * posterior_interp(lgsfr_grid, logm_comp) #load pdf in logm_comp
             cdf_sfr_posterior_at_mcomp = np.cumsum(np.clip(posterior_dens_at_mcomp, 0, None))
             cdf_sfr_posterior_at_mcomp /= cdf_sfr_posterior_at_mcomp[-1]
             sfr_idx = np.abs(np.random.rand()-cdf_sfr_posterior_at_mcomp).argmin()
@@ -180,7 +184,11 @@ def Gen_mock_gal(Nsample     = 1000,
             sfr_i += sfr_mode_i - utls.SFMS(Mstar=10**logm_comp, z=z, sfr_ref=sfr_ref, mode='ridge', sample_size=sample_size, posterior=False)
 
         elif ( np.log10(mstar_i) < logm_comp ) and (completeness_handling == 'sharma-like') and (z<=0.2) : 
-            posterior_dens_at_mcomp = posterior_interp(lgsfr_grid, logm_comp)
+
+            # weight the PDF by SFR if weight is 'SFR'
+            weight_factor = 10**lgsfr_grid if weight=='SFR' else 1 
+
+            posterior_dens_at_mcomp = weight_factor * posterior_interp(lgsfr_grid, logm_comp)
             cdf_sfr_posterior_at_mcomp = np.cumsum(np.clip(posterior_dens_at_mcomp, 0, None))
             cdf_sfr_posterior_at_mcomp /= cdf_sfr_posterior_at_mcomp[-1]
             sfr_idx = np.abs(np.random.rand()-cdf_sfr_posterior_at_mcomp).argmin()
@@ -196,7 +204,10 @@ def Gen_mock_gal(Nsample     = 1000,
 
         else :
             #sfr_posterior = posterior_dens
-            cdf_sfr_posterior = np.cumsum(np.clip(posterior_dens, 0, None))
+            # weight the PDF by SFR if weight is 'SFR'
+            weight_factor = 10**lgsfr_grid if weight=='SFR' else 1 
+
+            cdf_sfr_posterior = np.cumsum(np.clip(weight_factor * posterior_dens, 0, None))
             cdf_sfr_posterior /= cdf_sfr_posterior[-1]
             sfr_idx = np.abs(np.random.rand()-cdf_sfr_posterior).argmin()
             try: 
