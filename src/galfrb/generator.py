@@ -519,6 +519,9 @@ def magnitude_cut(log_mstar = [],
                   space_dist = 'delta',
                   ml_sampling = 'uniform',
                   prescribed_ml_func = None, 
+                  bimodal_gr = False,
+                  all_red = False,
+                  all_blue = False,
                   density_sfr_color = None,
                   color_gr_grid = None,
                   sfr_grid = None,
@@ -549,6 +552,9 @@ def magnitude_cut(log_mstar = [],
         - plot: plot flag (set True if a histogram is desired)
         - ml_sampling : which mode to use in order to sample mass-to-light ratio values (available : 'prescribed', 'advanced')
         - prescribed_ml_func : functional used to compute M/L for given sfr, sfr_mode (active only when ml_sampling='prescribed')
+        - bimodal_gr: flag to use bimodal gr-color distribution (active only when ml_sampling='advanced')
+        - all_red: flag to use all-red galaxies (active only when ml_sampling='advanced')
+        - all_blue: flag to use all-blue galaxies (active only when ml_sampling='advanced')
         - density_sfr_color: prob. density in sfr-color space (from Chang et al.)
         - color_gr_grid: color array for color-sfr grid
         - sfr_grid: sfr array for color-sfr grid -- in logarithmic form
@@ -658,7 +664,7 @@ def magnitude_cut(log_mstar = [],
 
             #Step 1: Sample rest-frame M/Lg & g-r 
             ## note that MtoLg here is not in logarithmic form. MtoLg units are (Msun/Lg,sun)
-            MtoLg_sample, color_gr, _, _ = utls.sample_mass_to_light(sfr=log_sfr[i], z=z_values[i], density_sfr_color=density_sfr_color, color_arr=color_gr_grid, sfr_arr=sfr_grid)
+            MtoLg_sample, color_gr, _, _ = utls.sample_mass_to_light(sfr=log_sfr[i], sfr_mode=log_sfr_mode[i], z=z_values[i], density_sfr_color=density_sfr_color, color_arr=color_gr_grid, sfr_arr=sfr_grid, bimodal_gr=bimodal_gr, all_red=all_red, all_blue=all_blue)
             ## Change normalization units from Lg_sun to L_sun
             MtoLg_sample = 1. / utls.Lg_Lg_sun_to_Lg_L_sun(Lg_in_Lg_sun=1./MtoLg_sample)
             #Step 2: Convert to rest-frame M/Lr
@@ -746,6 +752,9 @@ def mock_realization(zbins = [0.,0.3, 0.7],
                  p_logsfr_arr = None,
                  ml_sampling='prescribed',
                  prescribed_ml_func=None,
+                 bimodal_gr=False,
+                 all_red=False,
+                 all_blue=False,
                  density_sfr_color=None,
                  sfr_grid=None,
                  color_gr_grid=None,
@@ -794,6 +803,9 @@ def mock_realization(zbins = [0.,0.3, 0.7],
         - p_logsfr_arr: logsfr array in logm-logsfr-z grid space 
         - ml_sampling: If mass-to-light ratio is to be sampled. Options: ['prescribed', 'advanced']
         - prescribed_ml_func: Prescribed lambda function to compute M/L for given sfr, sfr_mode, it is used only if ml_sampling='prescribed'
+        - bimodal_gr: flag to use bimodal gr-color distribution (active only when ml_sampling='advanced')
+        - all_red: flag to use all-red galaxies (active only when ml_sampling='advanced')
+        - all_blue: flag to use all-blue galaxies (active only when ml_sampling='advanced')
         - density_sfr_color: prob. density in sfr-color space provided M/L sampling is activated
         - sfr_grid: sfr array (in log form) for sfr-color grid resolution provided M/L sampling is activated
         - color_gr_grid: color g-r array for sfr-color grid resolution provided M/L sampling is activated
@@ -831,6 +843,9 @@ def mock_realization(zbins = [0.,0.3, 0.7],
     print(f"  p_dens_params:         {p_dens_params}")
     print(f"  ml_sampling:           {ml_sampling}")
     print(f"  prescribed_ml_func:    {prescribed_ml_func}")
+    print(f"  bimodal_gr:            {bimodal_gr}")
+    print(f"  all_red:               {all_red}")
+    print(f"  all_blue:              {all_blue}")
     print(f"  Kr_correction:         {Kr_correction}")
     print(f"  plot_M_L:              {plot_M_L}")
     print(f"  store_output:          {store_output}")
@@ -1104,13 +1119,13 @@ def mock_realization(zbins = [0.,0.3, 0.7],
                         # merge subsumples to generate one realization for given redshift range
                         post_sample = np.array(post_sample).flatten()
                         log_sfr = np.array(log_sfr).flatten()
-                        lof_sfr_mode = np.array(log_sfr_mode).flatten()
+                        log_sfr_mode = np.array(log_sfr_mode).flatten()
                         post_z_values = np.array(post_z_values).flatten()
 
                 logm_samples.append(post_sample)
                 if space_dist == 'delta' : post_z_values = None
                 try :    
-                    color_sample, Kcorr_sample, ml_sample, mlg_rest_sample, ind_magcut = magnitude_cut(log_mstar=post_sample, log_sfr=log_sfr, log_sfr_mode=log_sfr_mode, z=zgal[i], z_values=post_z_values, rmag_cut=23.5, plot=False, space_dist=space_dist, ml_sampling=ml_sampling, density_sfr_color=density_sfr_color, sfr_grid=sfr_grid, color_gr_grid=color_gr_grid, Kr_correction=Kr_correction)
+                    color_sample, Kcorr_sample, ml_sample, mlg_rest_sample, ind_magcut = magnitude_cut(log_mstar=post_sample, log_sfr=log_sfr, log_sfr_mode=log_sfr_mode, z=zgal[i], z_values=post_z_values, rmag_cut=23.5, plot=False, space_dist=space_dist, ml_sampling=ml_sampling, density_sfr_color=density_sfr_color, sfr_grid=sfr_grid, color_gr_grid=color_gr_grid, bimodal_gr=bimodal_gr, all_red=all_red, all_blue=all_blue, Kr_correction=Kr_correction)
                     MtoL_samples.append(ml_sample)
                     MtoLg_rest_samples.append(mlg_rest_sample)
                     color_samples.append(color_sample)

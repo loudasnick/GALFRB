@@ -248,24 +248,41 @@ def load_data(fits_file=None, sfr_filter=True, lgsfr_cut=-2, lum_units='L_sun'):
 
 
 def sample_color(sfr, 
+                 sfr_mode=-np.inf,
                  Nsample=1, 
                  density=None, 
                  color_arr=None, 
                  sfr_arr=None, 
-                 plot=False):
+                 plot=False,
+                 bimodal=False,
+                 all_red=False,
+                 all_blue=False):
     
     """
     Input:
         - sfr: logSFR value
+        - sfr_mode: mode of sfr distribution (default: -inf)
         - Nsample : # of color samples
         - density : pdf in sfr-color space
         - color_arr : color grid
         - sfr-arr : sfr grid in log form
         - plot : whether to plot the pdf
+        - bimodal : if True then it samples from a bimodal distribution (default: False)
+        - all_red : if True then it samples only from the red galaxy distribution (default: True)
+        - all_blue : if True then it samples only from the blue galaxy distribution (default: False)
 
     Returns: 
         - g_r_sample : A sample of colors drawn from the pdf
     """
+
+    if bimodal :
+        # Bimodal sampling
+        if sfr > sfr_mode - 0.7 : return np.random.normal(loc=0.15, scale=0.05, size=Nsample) # star-forming, blue galaxy
+        else : return np.random.normal(loc=0.45, scale=0.05, size=Nsample) # quiescent, red galaxy
+
+    elif all_red and not all_blue : return np.random.normal(loc=0.45, scale=0.05, size=Nsample) # quiescent, red galaxy
+    elif all_blue and not all_red : return np.random.normal(loc=0.15, scale=0.05, size=Nsample) # star-forming, blue galaxy
+    elif all_red and all_blue : raise Exception(f"You cannot sample a galaxy that is both red and blue at the same time. Please choose one of them. input parameters: all_red={all_red}, all_blue={all_blue}, bimodal={bimodal}")
 
     f_color = density[abs(sfr - sfr_arr).argmin()]
     cdf = np.nancumsum(f_color)
@@ -755,22 +772,31 @@ def compute_color_ml_density(m_l = np.logspace(-2.2,1.2,2000),
 
 def sample_mass_to_light(sfr, 
                          z, 
+                         sfr_mode=-np.inf,
                          m_l_arr=np.logspace(-2.2,1.2,2000), 
                          Nsample=1, 
                          density_sfr_color=None, 
                          color_arr=None, 
-                         sfr_arr=None) :
+                         sfr_arr=None,
+                         bimodal_gr=False,
+                         all_red=False,
+                         all_blue=False):
 
     """
     Mass-to-light sampler
 
     Input: 
         - sfr : log of galaxy's sfr
+        - z : redshift of the galaxy
+        - sfr_mode : mode of the sfr distribution (default is -inf)
         - m_l_array : an array of m_l values (including the resolution)
         - Nsample : How many colors to sample (set to 1). It doesn't work for more
         - density_sfr_color : give a 2-d array of pdf in sfr-color in order to sample a color
         - color_arr : an array with color grid values (including resolution)
         - sfr_arr : an array with log(sfr) grid values (including resolution)
+        - bimodal_gr : if True then the color sampling is bimodal (default is False)
+        - all_red : if True then it samples only from the red galaxy distribution (default is False)
+        - all_blue : if True then it samples only from the blue galaxy distribution (default is False)
 
     Returns:
         - m_l : sample mass-to-light ratio (rest frame M/Lg) -- not in logarithmic form
@@ -780,12 +806,18 @@ def sample_mass_to_light(sfr,
     """
 
     # sample a color for given sfr and redshift
-    sampled_color = sample_color(sfr=max(sfr + 0.1, sfr_arr[0]), Nsample=Nsample, density=density_sfr_color, color_arr=color_arr,sfr_arr=sfr_arr, plot=False)
+    sampled_color = sample_color(sfr=max(sfr + 0.1, sfr_arr[0]), sfr_mode=sfr_mode, Nsample=Nsample, density=density_sfr_color, color_arr=color_arr,sfr_arr=sfr_arr, plot=False, bimodal=bimodal_gr, all_red=all_red, all_blue=all_blue)
 
     #m_l_arr = np.logspace(-2.2,1.2,2000)
     # load the pdf describing the distribution in the mass-to-light ratio <-- offered by Li & Leja 2022
     parameters_ml_color = load_pars_ml_color() # load the parameters that are being used in the pdf(ml)
-    pdf_mtol = pdf_mass_to_light(m_l=m_l_arr, g_r=sampled_color[0], redshift=z, pars=parameters_ml_color)
+    
+    #pdf_mtol = pdf_mass_to_light(m_l=m_l_arr, g_r=sampled_color[0], redshift=z, pars=parameters_ml_color)
+    
+    #hack
+    pdf_mtol = pdf_mass_to_light(m_l=m_l_arr, g_r=sampled_color[0], redshift=max(z,0.5), pars=parameters_ml_color)
+    #end hack
+    
     # compute the cumulative to sample from it
     cdf_mtol = np.cumsum(pdf_mtol)
     cdf_mtol /= cdf_mtol[-1]
