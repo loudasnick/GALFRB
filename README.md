@@ -1,5 +1,7 @@
 # GALFRB
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16069660.svg)](https://doi.org/10.5281/zenodo.16069660)
+
 Welcome to the GALFRB repository! 
 
 <p align="center">
