@@ -76,6 +76,21 @@ def Lr_L_sun_to_Lr_Lr_sun(Lr_in_L_sun: float, ratio: float = Lum_r_sun) -> float
     """
     return (1./ratio) * Lr_in_L_sun # convert to Lsun
 
+def zvalues_delta(zgal, Nsample, n_realizations):
+    """
+    Generate redshift values for each galaxy
+    Input:
+        - zgal : array of redshift values with shape (Nz,)
+        - Nsample : number of samples per redshift bin per realization
+        - n_realizations : number of realizations per redshift bin
+    Returns:
+        - zgal_desired : array of redshift values with shape (Nz*n_realizations, Nsample)
+    """
+    zgal_ = np.asarray(zgal)
+    zgal_repeat = np.repeat(zgal[:, None], Nsample, axis=1)  # shape: (Nz, Nsample)
+    zgal_desired = np.repeat(zgal_repeat, n_realizations, axis=0)      # shape: (Nz*n_realizations, Nsample)
+    return zgal_desired
+
 
 def load_input_data(fits_file: str = None, 
                     drop_zero_flux_gal: str = True):
@@ -812,10 +827,10 @@ def sample_mass_to_light(sfr,
     # load the pdf describing the distribution in the mass-to-light ratio <-- offered by Li & Leja 2022
     parameters_ml_color = load_pars_ml_color() # load the parameters that are being used in the pdf(ml)
     
-    #pdf_mtol = pdf_mass_to_light(m_l=m_l_arr, g_r=sampled_color[0], redshift=z, pars=parameters_ml_color)
+    pdf_mtol = pdf_mass_to_light(m_l=m_l_arr, g_r=sampled_color[0], redshift=z, pars=parameters_ml_color)
     
-    #hack
-    pdf_mtol = pdf_mass_to_light(m_l=m_l_arr, g_r=sampled_color[0], redshift=max(z,0.5), pars=parameters_ml_color)
+    #hack to test depedence of results on extrapolated p(M/L,z) at low z
+    # pdf_mtol = pdf_mass_to_light(m_l=m_l_arr, g_r=sampled_color[0], redshift=max(z,0.5), pars=parameters_ml_color)
     #end hack
     
     # compute the cumulative to sample from it
