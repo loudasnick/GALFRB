@@ -9,5 +9,6 @@ src/galfrb/data/*.fits
 
 .DS_Store
 
-
+__pycache__/
+*.pyc
 
