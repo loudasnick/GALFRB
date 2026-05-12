@@ -1,6 +1,7 @@
 # imports
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import seaborn as sns
 import os
 import sys
@@ -761,7 +762,7 @@ def mock_realization(zbins = [0.,0.3, 0.7],
                  sfr_grid=None,
                  color_gr_grid=None,
                  Kr_correction=False,
-                 plot_M_L=False,
+                 plot_diagnostics=False,
                  store_output=False
                  ):
     
@@ -812,7 +813,7 @@ def mock_realization(zbins = [0.,0.3, 0.7],
         - sfr_grid: sfr array (in log form) for sfr-color grid resolution provided M/L sampling is activated
         - color_gr_grid: color g-r array for sfr-color grid resolution provided M/L sampling is activated
         - Kr_correction: flag to activate Kr-correction
-        - plot_M_L: flag to plot the mass-to-light distribution and other related quantities
+        - plot_diagnostics: flag to plot the mass-to-light distribution and other related quantities
         - store_output: flag to store all samples into a h5 data file
     
     Returns:
@@ -849,7 +850,7 @@ def mock_realization(zbins = [0.,0.3, 0.7],
     print(f"  all_red:               {all_red}")
     print(f"  all_blue:              {all_blue}")
     print(f"  Kr_correction:         {Kr_correction}")
-    print(f"  plot_M_L:              {plot_M_L}")
+    print(f"  plot_diagnostics:      {plot_diagnostics}")
     print(f"  store_output:          {store_output}")
     print("---------------\n")
 
@@ -968,16 +969,25 @@ def mock_realization(zbins = [0.,0.3, 0.7],
     
     # set up the figure configuration
     # if space_dist != 'delta' : zgal = np.zeros(len(z_min))
-    plt.subplots(1,len(zgal), figsize=(3.5*len(zgal),4), sharey=True, gridspec_kw={'wspace': 0, 'hspace': 0})
-    plt.subplot(1, len(zgal), 1)
+    # If more than 20, select 20 evenly spaced elements
+    if len(zgal) > 20: zgal_plot = zgal[np.linspace(0, len(zgal) - 1, 20, dtype=int)]
+    else: zgal_plot = zgal
+    plt.subplots(1,len(zgal_plot), figsize=(3.5*len(zgal_plot),4), sharey=True, gridspec_kw={'wspace': 0, 'hspace': 0})
+    plt.subplot(1, len(zgal_plot), 1)
     plt.ylabel('CDF')
 
     MtoL_samples, logm_samples, lgsfr_samples, lgsfr_mode_samples, color_samples, Kcorr_samples, MtoLg_rest_samples, magcut_ind_flags, redshift_samples = [], [], [], [], [], [], [], [], []
     if ks_test : ks_pvalues = np.zeros(shape=(len(zgal), n_realizations), dtype=float)
     massbins = np.linspace(6.4,12.6,200) # set the stellar mass resolution 
+    panel = 0
     for i in range(len(zgal)) : # iterate over all different redshift bins
 
-        plt.subplot(1, (len(zgal)), 1 + i)
+        if zgal[i] in zgal_plot : 
+            print(f"Now plotting the redshift bin {zbins[i]} < z <= {zbins[i+1]} with z_gal={zgal[i]}") # print the redshift bin that is currently being plotted
+            activate_plot = True
+        else : activate_plot = False
+
+        if activate_plot: plt.subplot(1, (len(zgal_plot)), 1 + panel); panel += 1
         idx = (zbins[i]<frbdata_ztransient) & (frbdata_ztransient<zbins[i+1])  # this selects the FRB hosts which lie in the desired chosen redshift range.
         if plot_cdf_ridge :
             sample = log_mstar_samples[i]
@@ -991,18 +1001,19 @@ def mock_realization(zbins = [0.,0.3, 0.7],
             #sfr_samples = SFMS(Mstar=10**log_mstar_samples[i], z=zgal[i])
 
             # plot the whole sample's cdf
-            plt.hist(sample, cumulative=True, density=True, histtype='step', ls='--', color='green', bins=massbins, lw=1., label='mock galaxies w/o rmag limit')
-            # applyt the selection cut and plot the cdf
-            plt.hist(sample[ind_magcut], cumulative=True, density=True, histtype='step', ls='-', color='green', bins=massbins, lw=2, label='mock galaxies w/ rmag limit')
+            if activate_plot: 
+                plt.hist(sample, cumulative=True, density=True, histtype='step', ls='--', color='green', bins=massbins, lw=1., label='mock galaxies w/o rmag limit')
+                # applyt the selection cut and plot the cdf
+                plt.hist(sample[ind_magcut], cumulative=True, density=True, histtype='step', ls='-', color='green', bins=massbins, lw=2, label='mock galaxies w/ rmag limit')
 
         # plot the FRB host data
-        plt.hist(np.log10(frbdata_mstar[idx]), cumulative=True, density=True, histtype='step', color='black', bins=massbins, lw=2, label='FRB hosts')
-        plt.title(f"{zbins[i]} $< z \leq $ {zbins[i+1]}")
-        plt.text(x=np.min(massbins)+0.8, y=0.4, \
+        if activate_plot: 
+            plt.hist(np.log10(frbdata_mstar[idx]), cumulative=True, density=True, histtype='step', color='black', bins=massbins, lw=2, label='FRB hosts')
+            plt.title(f"{zbins[i]} $< z \leq $ {zbins[i+1]}")
+            plt.text(x=np.min(massbins)+0.8, y=0.4, \
                 s="N of FRBs = " + f"{len(frbdata_mstar[idx]):.0f}\nWeighted by {weight}\nsfms={sfr_ref}\nmfunc={mfunc_ref}\nred:chosenM-L\ngreen:SharmaM-L", \
                 fontsize=10, color='gray')
-        plt.xlabel("$\mathrm{\log M_\star ~ [M_\odot]}$"); plt.xlim(6.9,12.1); plt.ylim(0.,1.0)
-        #if i>0 : plt.gca().set_yticklabels([])
+            plt.xlabel("$\mathrm{\log M_\star ~ [M_\odot]}$"); plt.xlim(6.9,12.1); plt.ylim(0.,1.0)
 
         # run ks-test
         if (ks_test) and (plot_cdf_ridge) : 
@@ -1013,7 +1024,7 @@ def mock_realization(zbins = [0.,0.3, 0.7],
             try :
                 pvalue = ks_2samp(np.log10(frbdata_mstar[idx]), sample[ind_magcut], alternative='two-sided', method='auto').pvalue
                 print(f"The ks-test has returned a p-value equal to {pvalue:.2e}.")
-                plt.text(x=np.max(massbins)-2.3, y=0.06, s=f"p-value={pvalue:.1e}", fontsize=10, color='blue')
+                if activate_plot: plt.text(x=np.max(massbins)-2.3, y=0.06, s=f"p-value={pvalue:.1e}", fontsize=10, color='blue')
             except :
                 print("The ks-test could not be performed for this redshift bin. Possibly there are not enough FRB host data points.")
                 print(f"The size of the FRB host data in this redshift bin is {len(frbdata_mstar[idx])}")
@@ -1049,8 +1060,9 @@ def mock_realization(zbins = [0.,0.3, 0.7],
                 if space_dist in ['delta', 'delta_at_zright'] : post_z_values = None
                 ml_sample, ind_magcut = magnitude_cut(log_mstar=post_sample, z=zgal[i], rmag_cut=23.5, plot=False, z_values=post_z_values,  space_dist=space_dist)
                 MtoL_samples.append(ml_sample); magcut_ind_flags.append(ind_magcut)
-                plt.hist(post_sample, cumulative=True, density=True, histtype='step', ls='--', color='red', bins=massbins, lw=1., alpha=alpha, zorder=0)
-                plt.hist(post_sample[ind_magcut], cumulative=True, density=True, histtype='step', ls='-', color='red', bins=massbins, lw=1., alpha=alpha, zorder=0)
+                if activate_plot:
+                    plt.hist(post_sample, cumulative=True, density=True, histtype='step', ls='--', color='red', bins=massbins, lw=1., alpha=alpha, zorder=0)
+                    plt.hist(post_sample[ind_magcut], cumulative=True, density=True, histtype='step', ls='-', color='red', bins=massbins, lw=1., alpha=alpha, zorder=0)
                 try :
                     ks_pvalues[i, n] = utls.run_kstest(post_sample[ind_magcut], np.log10(frbdata_mstar[idx]))
                 except :
@@ -1151,8 +1163,9 @@ def mock_realization(zbins = [0.,0.3, 0.7],
                     redshift_samples.append(post_z_values)
                 except :
                     pass
-                plt.hist(post_sample, cumulative=True, density=True, histtype='step', ls='--', color='red', bins=massbins, lw=1., alpha=alpha, zorder=0)
-                plt.hist(post_sample[ind_magcut], cumulative=True, density=True, histtype='step', ls='-', color='red', bins=massbins, lw=1., alpha=alpha, zorder=0)
+                if activate_plot:
+                    plt.hist(post_sample, cumulative=True, density=True, histtype='step', ls='--', color='red', bins=massbins, lw=1., alpha=alpha, zorder=0)
+                    plt.hist(post_sample[ind_magcut], cumulative=True, density=True, histtype='step', ls='-', color='red', bins=massbins, lw=1., alpha=alpha, zorder=0)
 
                 try :
                     ks_pvalues[i, n] = utls.run_kstest(post_sample[ind_magcut], np.log10(frbdata_mstar[idx]))
@@ -1220,31 +1233,43 @@ def mock_realization(zbins = [0.,0.3, 0.7],
     # plot p-values distribution
     if ks_test :
         # plot ks_values for each redshift bin
-        plt.subplots(1,len(zgal), sharey=True, figsize=(3.5*len(zgal),4), gridspec_kw={'wspace': 0, 'hspace': 0})
-        plt.subplot(1, len(zgal), 1)
+        
+        plt.subplots(1,len(zgal_plot), sharey=True, figsize=(3.5*len(zgal_plot),4), gridspec_kw={'wspace': 0, 'hspace': 0})
+        plt.subplot(1, len(zgal_plot), 1)
         plt.ylabel('probability')
+        i_tmp = 0
         for i in range(len(zgal)) :
-            plt.subplot(1, (len(zgal)), 1 + i)
-            plt.hist(np.log10(np.clip(ks_pvalues[i], 1e-12, None)), bins=20, histtype='step', lw=2, density=True, ls='-', color='black')
-            plt.xlabel('$\mathrm{\log(p-value)}$')
-            plt.title('$\mathrm{P(p-value ~ | ~}$' + f'${zbins[i]}~$'+'$\mathrm{<z\leq}$' + f'$~{zbins[i+1]:.1f}$)')
+            if zgal[i] in zgal_plot :
+                activate_plot = True
+                print(f"Now plotting the p-value distribution for the redshift bin {zbins[i]} < z <= {zbins[i+1]} with z_gal={zgal[i]}.")
+            else : activate_plot = False
+            if activate_plot :
+                plt.subplot(1, (len(zgal_plot)), 1 + i_tmp); i_tmp+=1
+                plt.hist(np.log10(np.clip(ks_pvalues[i], 1e-12, None)), bins=20, histtype='step', lw=2, density=True, ls='-', color='black')
+                plt.xlabel('$\mathrm{\log(p-value)}$')
+                plt.title('$\mathrm{P(p-value ~ | ~}$' + f'${zbins[i]:.2f}~$'+'$\mathrm{<z\leq}$' + f'$~{zbins[i+1]:.2f}$)')
         plt.tight_layout()
         if store_output : plt.savefig(folder_path+'ks_distribution.png', format='png')
         plt.show()
 
 
     # plot stellar mass samples 
-    plt.subplots(1,len(zgal), sharey=True, figsize=(3.5*len(zgal),4), gridspec_kw={'wspace': 0, 'hspace': 0}) 
-    plt.subplot(1, len(zgal), 1)
+    plt.subplots(1,len(zgal_plot), sharey=True, figsize=(3.5*len(zgal_plot),4), gridspec_kw={'wspace': 0, 'hspace': 0}) 
+    plt.subplot(1, len(zgal_plot), 1)
     plt.ylabel("$\mathrm{P(M_\star,~z) ~ [arb.]}$")
     clrs = sns.color_palette("plasma", n_colors=len(zgal)) #['black', 'red', 'green'] 
+    i_tmp = 0
     for counter in range(len(zgal)) :
-        plt.subplot(1, (len(zgal)), 1 + counter)
-        plt.hist(np.array(logm_samples[counter*n_realizations:(counter+1)*n_realizations]).ravel(), bins=50, lw=2, density=True, ls='-', histtype='step', color=clrs[counter], label=f'z={zgal[counter]:.2f}')
-        plt.xlabel("$\mathrm{\log M_{\star} ~ [M_\odot]}$")
-        plt.legend()
-        plt.title(f"Stellar masses for z={zgal[counter]:.2f}")
-        plt.yscale('log'); plt.xlim(6.51,13)
+        if zgal[counter] in zgal_plot :
+            activate_plot = True
+            print(f"Now plotting the stellar mass distribution for the redshift bin {zbins[counter]} < z <= {zbins[counter+1]} with z_gal={zgal[counter]}.")
+        else : activate_plot = False
+        if activate_plot :
+            plt.subplot(1, (len(zgal_plot)), 1 + i_tmp); i_tmp+=1
+            plt.hist(np.array(logm_samples[counter*n_realizations:(counter+1)*n_realizations]).ravel(), bins=50, lw=2, density=True, ls='-', histtype='step', color=clrs[counter])
+            plt.xlabel("$\mathrm{\log M_{\star} ~ [M_\odot]}$")
+            plt.title(f"Stellar masses for z={zgal[counter]:.2f}")
+            plt.yscale('log'); plt.xlim(6.51,13)
     
     plt.tight_layout()
     if store_output : plt.savefig(folder_path+'logm_distribution.png', format='png')
@@ -1254,23 +1279,26 @@ def mock_realization(zbins = [0.,0.3, 0.7],
     # plot stellar mass vs SFR samples
     try :
         if len(log_sfr) != 0 :
-            plt.subplots(1,len(zgal), sharey=True, figsize=(3.5*len(zgal),4), gridspec_kw={'wspace': 0, 'hspace': 0}) 
-            plt.subplot(1, len(zgal), 1)
+            plt.subplots(1,len(zgal_plot), sharey=True, figsize=(3.5*len(zgal_plot),4), gridspec_kw={'wspace': 0, 'hspace': 0}) 
+            plt.subplot(1, len(zgal_plot), 1)
             plt.ylabel("$\mathrm{\log{SFR_{SED}} ~ [M_\odot ~ yr^{-1}]}$")
             #idx_sorted = np.argsort(post_sample)
 
             #post_sample = post_sample[idx_sorted]
             #log_sfr_
             panel = 0; clrs = sns.color_palette("plasma", n_colors=len(zgal)) #['black', 'red', 'green']
-            for counter in range(len(logm_samples)) :
-                plt.subplot(1, (len(zgal)), 1 + panel)
-                plt.scatter(logm_samples[counter], lgsfr_samples[counter], marker='.', color=clrs[panel], s=1, alpha=0.1)#'SFR sample')
-                plt.scatter(logm_samples[counter], lgsfr_mode_samples[counter], marker='.', color='blue', s=1, alpha=0.1)
-            
-                if (counter+1)%n_realizations == 0 :
+            for counter in range(len(zgal)) :
+                if zgal[counter] in zgal_plot :
+                    activate_plot = True
+                    print(f"Now plotting the SFR vs stellar mass distribution for the redshift bin {zbins[counter]} < z <= {zbins[counter+1]} with z_gal={zgal[counter]}.")
+                else : activate_plot = False
+                if activate_plot :
+                    plt.subplot(1, (len(zgal_plot)), 1 + panel)
+                    plt.scatter(np.array(logm_samples[counter*n_realizations:(counter+1)*n_realizations]).ravel(), np.array(lgsfr_samples[counter*n_realizations:(counter+1)*n_realizations]).ravel(), marker='.', color=clrs[counter], s=1, alpha=0.1)#'SFR sample')
+                    plt.scatter(np.array(logm_samples[counter*n_realizations:(counter+1)*n_realizations]).ravel(), np.array(lgsfr_mode_samples[counter*n_realizations:(counter+1)*n_realizations]).ravel(), marker='.', color='blue', s=1, alpha=0.1)
                     plt.xlabel("$\mathrm{\log M_{\star} ~ [M_\odot]}$")
                     plt.legend(['SFR samples', 'SFR ridge-line'], markerscale=6., framealpha=1)
-                    plt.title(f"SFR samples for z={zgal[panel]:.2f}")
+                    plt.title(f"SFR samples for z={zgal[counter]:.2f}")
                     panel+=1
                 
             plt.tight_layout()
@@ -1281,16 +1309,22 @@ def mock_realization(zbins = [0.,0.3, 0.7],
     # plot redshift distribution
     try :
         if space_dist in ['uniform-z', 'uniform-vol'] :
-            plt.subplots(1,len(zgal), sharey=True, figsize=(3.5*len(zgal),4), gridspec_kw={'wspace': 0, 'hspace': 0}) 
-            plt.subplot(1, len(zgal), 1)
+            plt.subplots(1,len(zgal_plot), sharey=True, figsize=(3.5*len(zgal_plot),4), gridspec_kw={'wspace': 0, 'hspace': 0}) 
+            plt.subplot(1, len(zgal_plot), 1)
             plt.ylabel("density")
 
             clrs = sns.color_palette("plasma", n_colors=len(zgal)) #['black', 'red', 'green']
+            panel = 0
             for counter in range(len(zgal)) :
-                plt.subplot(1, (len(zgal)), 1 + counter)
-                plt.hist(np.array(redshift_samples[counter*n_realizations:(counter+1)*n_realizations]).ravel(), bins=20, lw=2, density=True, ls='-', histtype='step', color=clrs[counter])
-                plt.xlabel("redshift"); plt.xlim(zbins[counter], zbins[counter+1])
-                plt.title(f"Galaxy sample in ${zbins[counter]:.1f}<z\leq{zbins[counter+1]:.1f}$")
+                if zgal[counter] in zgal_plot :
+                    activate_plot = True
+                    print(f"Now plotting the redshift distribution for the redshift bin {zbins[counter]} < z <= {zbins[counter+1]} with z_gal={zgal[counter]}.")
+                else : activate_plot = False
+                if activate_plot :
+                    plt.subplot(1, (len(zgal_plot)), 1 + panel); panel+=1
+                    plt.hist(np.array(redshift_samples[counter*n_realizations:(counter+1)*n_realizations]).ravel(), bins=20, lw=2, density=True, ls='-', histtype='step', color=clrs[counter])
+                    plt.xlabel("redshift"); plt.xlim(zbins[counter], zbins[counter+1])
+                    plt.title(f"Galaxy sample in ${zbins[counter]:.1f}<z\leq{zbins[counter+1]:.1f}$")
                 
             plt.tight_layout()
             if store_output : plt.savefig(folder_path+'redshift_distribution.png', format='png')
@@ -1300,20 +1334,26 @@ def mock_realization(zbins = [0.,0.3, 0.7],
     # plot comoving distance distribution
     try :
         if space_dist in ['uniform-z', 'uniform-vol'] :
-            plt.subplots(1,len(zgal), sharey=True, figsize=(3.5*len(zgal),4), gridspec_kw={'wspace': 0, 'hspace': 0}) 
-            plt.subplot(1, len(zgal), 1)
+            plt.subplots(1,len(zgal_plot), sharey=True, figsize=(3.5*len(zgal_plot),4), gridspec_kw={'wspace': 0, 'hspace': 0}) 
+            plt.subplot(1, len(zgal_plot), 1)
             plt.ylabel("$\mathrm{p(\chi)}$")
 
             clrs = sns.color_palette("plasma", n_colors=len(zgal)) #['black', 'red', 'green']
+            panel = 0 
             for counter in range(len(zgal)) :
-                plt.subplot(1, (len(zgal)), 1 + counter)
-                #print('a')
-                #print(cosmo.comoving_distance(np.array(redshift_samples[counter*n_realizations:(counter+1)*n_realizations]).ravel()).value / 1e3)
-                x = np.linspace(cosmo.comoving_distance(zbins[counter]).value, cosmo.comoving_distance(zbins[counter+1]).value, 20) / 1e3
-                plt.plot(x, 3*(x*x)/(x[-1]**3)/(1-(x[0]/x[-1])**3), ls='--', marker='', color='k', label="$p(\chi) ~\propto ~ \chi^2$")
-                plt.hist(cosmo.comoving_distance(np.array(redshift_samples[counter*n_realizations:(counter+1)*n_realizations]).ravel()).value / 1e3, bins=20, lw=2, density=True, ls='-', histtype='step', color=clrs[counter])
-                plt.xlabel("$\mathrm{\chi~~ [Gpc]}$"); plt.xlim(cosmo.comoving_distance(zbins[counter]).value / 1e3, cosmo.comoving_distance(zbins[counter+1]).value / 1e3)
-                plt.title(f"Galaxy sample in ${zbins[counter]:.1f}<z\leq{zbins[counter+1]:.1f}$")
+                if zgal[counter] in zgal_plot :
+                    activate_plot = True
+                    print(f"Now plotting the comoving distance distribution for the redshift bin {zbins[counter]} < z <= {zbins[counter+1]} with z_gal={zgal[counter]}.")
+                else : activate_plot = False
+                if activate_plot :
+                    plt.subplot(1, (len(zgal)), 1 + panel); panel+=1
+                    #print('a')
+                    #print(cosmo.comoving_distance(np.array(redshift_samples[counter*n_realizations:(counter+1)*n_realizations]).ravel()).value / 1e3)
+                    x = np.linspace(cosmo.comoving_distance(zbins[counter]).value, cosmo.comoving_distance(zbins[counter+1]).value, 20) / 1e3
+                    plt.plot(x, 3*(x*x)/(x[-1]**3)/(1-(x[0]/x[-1])**3), ls='--', marker='', color='k', label="$p(\chi) ~\propto ~ \chi^2$")
+                    plt.hist(cosmo.comoving_distance(np.array(redshift_samples[counter*n_realizations:(counter+1)*n_realizations]).ravel()).value / 1e3, bins=20, lw=2, density=True, ls='-', histtype='step', color=clrs[counter])
+                    plt.xlabel("$\mathrm{\chi~~ [Gpc]}$"); plt.xlim(cosmo.comoving_distance(zbins[counter]).value / 1e3, cosmo.comoving_distance(zbins[counter+1]).value / 1e3)
+                    plt.title(f"Galaxy sample in ${zbins[counter]:.1f}<z\leq{zbins[counter+1]:.1f}$")
                 
             plt.tight_layout()
             if store_output : plt.savefig(folder_path+'comoving_distance_distribution.png', format='png')
@@ -1322,7 +1362,7 @@ def mock_realization(zbins = [0.,0.3, 0.7],
 
 
     # # plot mass-to-light ratio, Kr-correction, and color realizations
-    # if plot_M_L and MtoL_samples is not None : #(assume that len(zgal) = 3)
+    # if plot_diagnostics and MtoL_samples is not None : #(assume that len(zgal) = 3)
     #     plt.subplots(3,2, figsize=(8,12))#, sharey='row', gridspec_kw={'wspace': 0})#, 'hspace': 1})
     #     line_color='black'; tag_i = None #f'z = {zgal[0]}'
         
@@ -1421,15 +1461,25 @@ def mock_realization(zbins = [0.,0.3, 0.7],
 
 
      # plot mass-to-light ratio, Kr-correction, and color realizations
-    if plot_M_L and MtoL_samples is not None : 
+    if plot_diagnostics and MtoL_samples is not None : 
         plt.subplots(3,2, figsize=(8,12))#, sharey='row', gridspec_kw={'wspace': 0})#, 'hspace': 1})
         line_color='black'; tag_i = None #f'z = {zgal[0]}'
 
-        clrs = sns.color_palette("viridis", n_colors=len(zgal)) 
+        cmap = mpl.cm.viridis
+        norm = mpl.colors.Normalize(vmin=np.min(zgal), vmax=np.max(zgal))
+
+        if len(zgal) <= 20:
+            clrs = sns.color_palette("viridis", n_colors=len(zgal)) 
 
         for a in range(len(zgal)) :
-            line_color = clrs[a]
-            tag_i = f'{zbins[a]} $<$ z $\leq$ {zbins[a+1]}'
+            if len(zgal) <= 20:
+                line_color = clrs[a]
+            else:
+                line_color = cmap(norm(zgal[a]))
+            if len(zgal) <= 20:
+                tag_i = f'{zbins[a]} $<$ z $\leq$ {zbins[a+1]}'
+            else:
+                tag_i = None
             start_idx = a * n_realizations
             end_idx = (a + 1) * n_realizations
 
@@ -1463,6 +1513,13 @@ def mock_realization(zbins = [0.,0.3, 0.7],
                 plt.hist(np.array(MtoLg_rest_samples[start_idx:end_idx]).ravel(), histtype='step', bins=80, color=line_color, lw=1.5, cumulative=False, density=True, label=tag_i)
             except: 
                 pass
+
+        if len(zgal) > 20:
+            sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
+            sm.set_array([])
+
+            cbar = plt.colorbar(sm, ax=plt.gcf().axes, fraction=0.02, pad=0.02)
+            cbar.set_label("Redshift z")
                 
         plt.subplot(326)
         plt.legend(fontsize=10)
