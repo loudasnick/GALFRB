@@ -11,12 +11,20 @@ Welcome to the GALFRB repository!
 
 ## Description
 
-GALFRB is a project aiming to unveiling the origing of Fast Radio Bursts (FRBs) by modeling their hosts' properties. With improved localization precision a considerable amount of FRBs are now associated with host galaxies. Their stellar mass $M_\star$ and star formation (SF) distribution encode important information related to the formation channel of FRBs.
+GALFRB is a project aiming to unveiling the origin of Fast Radio Bursts (FRBs) by modeling their hosts' properties. With improved localization precision a considerable amount of FRBs are now associated with host galaxies. Their stellar mass $M_\star$ and star formation (SF) distribution encode important information related to the formation channel of FRBs.
 
 This repository contains flexible modules for generating joint distributions of the properties of mock galaxies to compare with FRB hosts and provide stringent constraints on their origin. *Not limited to FRBs, this code can be also applied to studies of any kind of transient, extragalactic phenomena (e.g., gamma-ray bursts), so long as their host galaxies are identified.*
 
 The main paper of this project can be found here: [Unveiling the origin of fast radio bursts by modeling the stellar mass and star formation distributions of their host galaxies](https://arxiv.org/abs/2502.15566). 
 
+## Physical model overview
+
+GALFRB constructs mock galaxy populations using:
+
+- Stellar mass function (Leja / Schechter variants)
+- SFR–M⋆–z relations (ridge / mean / neural network posterior)
+- Color–SFR probabilistic mapping
+- Mass-to-light modeling with redshift dependence
 
 
 ## Installation
@@ -57,51 +65,64 @@ You are all set!
 # load the main modules of GALFRB
 from galfrb import generator as GFRB
 ```
-
-This will display the code in a monospaced font and preserve the formatting. You can also specify the programming language after the opening backticks to enable syntax highlighting. For example, to highlight Python code, use ```python```:
-
+Subsequently call the `mock_realization` module with the desired input parameters
 ```python
 GFRB.mock_realization()
 ```
 
 Input parameters of `mock_realization()` routine:
 
-- `zbins`: the redshift values separating the bins (number of bins = len(zbins) - 1)
-- `zgal`: the redshift at which each mock galaxy lies for each bin (applicable and useful only when `space_dist='delta'`)
-- `Nsample`: number of mock galaxies per mock galaxy realization and per redshift bin
-- `weight`: weight function to be used in the sampling distribution function (current options: 'SFR', 'mass', 'uniform')
-- `save`: flag for storing the figure
-- `mfunc_ref`: Which stellar mass function to be implemented in the calculation (current options: 'Leja', 'Schechter')
-- `mfunc_slope`: slope coefficient for artificially changing the stellar mass-function slope (default: 0, i.e., no modification of the stellar mass function)
-- `mfunc_Mstar0`: stellar-mass coefficient below which the stellar mass slope changes artificially (only if mfunc_slope!=0)
-- `sfr_ref`: Which SFR-Mstar-z probability density to be used [current options: 'Speagle', 'Leja']
-- `mode`: which mode of the sfr-Mstar parametric formula to be considered (available: 'ridge', 'mean', 'nn') ('nn' corresponds to the probability density offered by the trained normalizing flow of Leja+2022; it also needs `posterior=True`)
-- `posterior`: If True, then sampling of the posterior in the SFR-Mstar-z is activated,
-- `plot_cdf_ridge`: Flag to activate plotting of the cdf curved computed using `mode='ridge'`, i.e., no posterior, for comparison purposes 
-- `completeness_handling`: `if mode='nn'`, then it determines the prescribed sfr-mass relationship below m_completeness (current options: 'sharma-like', 'hybrid', 'cutoff')
-- `sigma_norm`: it controls the spread in the sfr-mass below m_completeness (only if `completeness-handling='hybrid'`)
-- `n_realizations`: how many different samples from the posterior are to be generated per redshift bin
-- `transparency`: 'alpha' for each line in the plot
-- `data_source`: FRB host galaxy sample (current options: 'Sharma_only', 'Sharma_full')
-- `ks_test`: If True, the Kolmogorov-smirnoff test is carried out
-- `sfr_sampling`: flag to sample sfr value for each mock generated galaxy (used to obtain color)
-- `space_dist`: Distribution of mock galaxies in space (current options: 'uniform-vol', 'delta', 'uniform-z'). The 'uniform' mode is outdated.
-- `z_min`: odd parameter (set to `None`). It will be removed in the future
-- `z_max`: odd parameter (set to `None`). It will be removed in the future
-- `p_dens_params`: various parameters used to sample the PDF in logm-logsfr-z,
-- `p_prob_arr`: PDF in logm-logsfr-z space (Leja et al. 2022) 
-- `p_z_arr`: redshift array in logm-logsfr-z grid space 
-- `p_logm_arr`: logM array in logm-logsfr-z grid space 
-- `p_logsfr_arr`: logsfr array in logm-logsfr-z grid space 
-- `ml_sampling`: If mass-to-light ratio is to be sampled. (current options: 'gaussian', 'prescribed', 'advanced'. The advanced is the one described in Loudas et al. 2025)
-- `prescribed_ml_func`: Prescribed lambda function to compute M/L for given sfr, sfr_mode, it is used only if `ml_sampling='prescribed'`
-- `density_sfr_color`: prob. density in sfr-color plane provided M/L sampling is activated
-- `sfr_grid`: sfr array (in log form) for sfr-color grid resolution provided M/L sampling is activated
-- `color_gr_grid`: color g-r array for sfr-color grid resolution provided M/L sampling is activated
-- `Kr_correction`: flag to activate and implement Kr-correction
-- `plot_M_L`: flag to plot the mass-to-light distribution and other related quantities
-- `store_output`: flag to store all samples into an h5 data file
+- `zbins`: redshift-bin edges (`number of bins = len(zbins) - 1`)
+- `zgal`: representative redshift(s) for each bin. For `space_dist='delta'` or `'delta_at_zright'`, this specifies the redshift where galaxies are placed
+- `Nsample`: number of mock galaxies generated per realization and per redshift bin
+- `weight`: weighting scheme used in the sampling distribution (`'SFR'`, `'mass'`, `'uniform'`)
+- `save`: flag to save generated figures
+- `mfunc_ref`: stellar mass-function prescription (`'Leja'`, `'Schechter'`)
+- `mfunc_slope`: artificial modification applied to the low-mass slope of the stellar mass function
+- `mfunc_mstar0`: stellar-mass threshold below which the modified slope is applied
+- `sfr_ref`: star-forming main-sequence prescription (`'Speagle'`, `'Leja'`)
+- `mode`: mode of the SFR--stellar-mass relation (`'ridge'`, `'mean'`, `'nn'`)
+    - `'nn'` uses the normalizing-flow posterior model of Leja et al. (2022)
+- `posterior`: if `True`, samples realizations from the posterior distribution
+- `plot_cdf_ridge`: if `True`, also plots the ridge-line CDF for comparison
+- `completeness_handling`: treatment of the SFR--mass relation below the completeness limit when `mode='nn'`
+    - available options: `'hybrid'`, `'cutoff'`, `'sharma-like'`
+- `sigma_norm`: controls the SFR scatter below the completeness limit (relevant for `'hybrid'`)
+- `n_realizations`: number of posterior realizations generated per redshift bin
+- `transparency`: transparency (`alpha`) value used for posterior realizations in plots
+- `data_source`: FRB host-galaxy sample used for comparison (`'Sharma_only'`, `'Sharma_full'`)
+- `ks_test`: if `True`, performs a Kolmogorov--Smirnov test between mock galaxies and FRB hosts
+- `sfr_sampling`: if `True`, samples SFR values for each mock galaxy (required for color and mass-to-light calculations)
+- `space_dist`: spatial/redshift distribution of mock galaxies
+    - available options:
+        - `'delta'`: all galaxies placed at `zgal`
+        - `'delta_at_zright'`: galaxies placed at the upper redshift edge
+        - `'uniform-z'`: galaxies uniformly distributed in redshift
+        - `'uniform-vol'`: galaxies uniformly distributed in comoving volume
+- `nz_bins`: number of sub-redshift bins used when `space_dist` is not delta-function based
+- `z_min`: lower redshift limits for each bin (used in non-delta spatial distributions)
+- `z_max`: upper redshift limits for each bin (used in non-delta spatial distributions)
+- `p_dens_params`: dictionary containing parameters defining the posterior PDF grid in `(logM, logSFR, z)` space
+- `p_prob_arr`: posterior probability-density array in `(logM, logSFR, z)` space
+- `p_z_arr`: redshift grid corresponding to `p_prob_arr`
+- `p_logm_arr`: stellar-mass grid corresponding to `p_prob_arr`
+- `p_logsfr_arr`: SFR grid corresponding to `p_prob_arr`
+- `ml_sampling`: mass-to-light ratio prescription
+    - available options:
+        - `'prescribed'`
+        - `'advanced'`
+- `prescribed_ml_func`: user-defined lambda/function used to compute mass-to-light ratios when `ml_sampling='prescribed'`
+- `bimodal_gr`: activates a bimodal rest-frame `(g-r)` color distribution (`ml_sampling='advanced'` only)
+- `all_red`: forces all galaxies to belong to the red population (`ml_sampling='advanced'` only)
+- `all_blue`: forces all galaxies to belong to the blue population (`ml_sampling='advanced'` only)
+- `density_sfr_color`: probability density in SFR--color space used for color sampling
+- `sfr_grid`: logarithmic SFR grid corresponding to `density_sfr_color`
+- `color_gr_grid`: rest-frame `(g-r)` color grid corresponding to `density_sfr_color`
+- `Kr_correction`: activates K-correction calculations
+- `plot_diagnostics`: generates diagnostic plots for SFRs, colors, K-corrections, and mass-to-light ratios
+- `store_output`: if `True`, stores all generated samples and metadata in an HDF5 output file
 
+An example call can be found at `examples/mock_population.ipynb`
 
 ### Access stored output data
 
