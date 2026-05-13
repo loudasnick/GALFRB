@@ -12,3 +12,16 @@ src/galfrb/data/*.fits
 __pycache__/
 *.pyc
 
+src/galfrb/__pycache__/*
+
+examples/*.html  
+
+examples/*.pdf
+
+examples/visualize_CDFs.ipynb  
+
+examples/load_stellar_mass_dists.ipynb
+
+examples/construct_p-mr_z.ipynb   
+
+examples/construct_cdf_mass_chi.ipynb 

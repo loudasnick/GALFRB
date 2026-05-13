@@ -1438,5 +1438,37 @@ def read_ULXsources_hosts_data(Dcut=False):
     return ULX_df
 
 
-
+# Add metallicity to the dataset using the fundamental metallicity relation (FMR) from Yamasaki+26
+def add_metallicity(logm: np.ndarray, logsfr: np.ndarray, alpha_par: float = 0.6, logm_offset: float = -0.2, add_scatter: bool = True, sigma: float = 0.05) -> np.ndarray:
+    '''
+    Add metallicity to the dataset using the fundamental metallicity relation (FMR) from Yamasaki+26.
+    -----
+    Input:
+        logm     : np.ndarray
+        log10(M/Msun)
+        logsfr   : np.ndarray
+        log10(SFR/Msun/yr)
+        alpha_par : float
+        logm_offset : float (dex)
+        add_scatter : bool
+        sigma : float (dex)
+    -----
+    Returns:
+        logz      : np.ndarray
+        12 + log(O/H)
+    -----
+    Notes:
+        We adopt the FMR used by Yamasaki+26 to incorpotate metallicity into GALFRB; It is based on Mannucci et al. (2010), Mannucci et al. (2011), and Sanders et al. (2021).
+        The FMR is defined as a function of the stellar mass and the SFR, and it is calibrated using a sample SDSS galaxies.
+        The FMR is defined as follows:
+            logZ = 12 + log(O/H) = 8.80 + 0.188 * y - 0.22 * y^2 - 0.053 * y^3
+            with
+            y = (logM + logM_offset) - alpha_par * logSFR - 10
+        where logZ is the metallicity, i.e., 12 + log(O/H), logM is the stellar mass in units of solar mass, and logSFR is the SFR in units of solar mass per year.
+    '''
+    mu_Z = logm + logm_offset - alpha_par * logsfr 
+    y = mu_Z - 10
+    logz = 8.80 + 0.188 * y - 0.22 * y**2 - 0.053 * y**3
+    logz += np.random.normal(loc=0, scale=sigma, size=logz.shape) if add_scatter else 0
+    return logz, mu_Z
 

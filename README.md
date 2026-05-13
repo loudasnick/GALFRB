@@ -98,12 +98,12 @@ Input parameters of `mock_realization()` routine:
 - `space_dist`: spatial/redshift distribution of mock galaxies
     - available options:
         - `'delta'`: all galaxies placed at `zgal`
-        - `'delta_at_zright'`: galaxies placed at the upper redshift edge
+        - `'delta_at_zright'`: galaxies placed at the upper redshift edge [in that case `zgal` == `zbins[1:]`]
         - `'uniform-z'`: galaxies uniformly distributed in redshift
         - `'uniform-vol'`: galaxies uniformly distributed in comoving volume
 - `nz_bins`: number of sub-redshift bins used when `space_dist` is not delta-function based
-- `z_min`: lower redshift limits for each bin (used in non-delta spatial distributions)
-- `z_max`: upper redshift limits for each bin (used in non-delta spatial distributions)
+- `z_min`: lower redshift limits for each bin (dummy variable--ignore)
+- `z_max`: upper redshift limits for each bin (dummy variable--ignore)
 - `p_dens_params`: dictionary containing parameters defining the posterior PDF grid in `(logM, logSFR, z)` space
 - `p_prob_arr`: posterior probability-density array in `(logM, logSFR, z)` space
 - `p_z_arr`: redshift grid corresponding to `p_prob_arr`

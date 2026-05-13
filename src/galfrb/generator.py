@@ -819,6 +819,7 @@ def mock_realization(zbins = [0.,0.3, 0.7],
     Returns:
     """
     if mode != 'nn' : sfr_sampling = False # it makes no sense to sample sfr if the chosen mode is not 'nn'
+    if space_dist == 'delta_at_zright' : zgal = zbins[1:] # in this case, the redshift of each galaxy is set to the right edge of the redshift bin it belongs to    
     # Print the input parameters with better formatting
     print("\nInput Parameters:") 
     print(f"  zbins:                 {zbins}")
