@@ -728,6 +728,7 @@ def magnitude_cut(log_mstar = [],
 def mock_realization(zbins = [0.,0.3, 0.7], 
                  zgal = [0.15, 0.45], 
                  Nsample = 100000, 
+                 rmag_cut = 23.5,
                  weight = None, 
                  save = False, 
                  mfunc_ref = 'Leja', 
@@ -780,6 +781,7 @@ def mock_realization(zbins = [0.,0.3, 0.7],
         - zbins: the redshift values separating the bins (number of bins = len(zbins) - 1)
         - zgal: the mean (or lower/upper bound) redshift at which each mock galaxy lies for each bin (applicable when space_dist in ['delta', 'delta_at_zright'])
         - Nsample: number of galaxy samples per mock galaxy realization
+        - rmag_cut: magnitude threshold for the selection criterion (e.g., rmag_cut=23.5 for Sharma et al. 2024, Loudas et al. 2025)
         - weight: weight function to be used in the samplng distribution function (current options: 'SFR', 'mass', 'uniform')
         - save: flag for storing the figure
         - mfunc_ref: Which stellar mass function to be implemented in the calculation ('Leja', 'Schechter')
@@ -992,10 +994,10 @@ def mock_realization(zbins = [0.,0.3, 0.7],
         idx = (zbins[i]<frbdata_ztransient) & (frbdata_ztransient<zbins[i+1])  # this selects the FRB hosts which lie in the desired chosen redshift range.
         if plot_cdf_ridge :
             sample = log_mstar_samples[i]
-            if space_dist not in ['delta', 'delta_at_zright'] : _, ind_magcut = magnitude_cut(log_mstar=sample, z=zgal[i], rmag_cut=23.5, plot=False, z_values=z_values[i], space_dist=space_dist)
+            if space_dist not in ['delta', 'delta_at_zright'] : _, ind_magcut = magnitude_cut(log_mstar=sample, z=zgal[i], rmag_cut=rmag_cut, plot=False, z_values=z_values[i], space_dist=space_dist)
             else : # basically no need to iterate over each individual galaxy cause the population lies by definition at a given redshift
                 try :
-                    _, ind_magcut = magnitude_cut(log_mstar=sample, z=zgal[i], rmag_cut=23.5, plot=False, space_dist=space_dist)
+                    _, ind_magcut = magnitude_cut(log_mstar=sample, z=zgal[i], rmag_cut=rmag_cut, plot=False, space_dist=space_dist)
                 except :
                     print(f"The code crashed when the redshift was {zgal[i]} and you should check the magnitude_cut() routine")
                     raise Exception("Test the magnitude_cut() function.")
@@ -1059,7 +1061,7 @@ def mock_realization(zbins = [0.,0.3, 0.7],
                 # add realization to the grand sample for given redshift range
                 logm_samples.append(post_sample)
                 if space_dist in ['delta', 'delta_at_zright'] : post_z_values = None
-                ml_sample, ind_magcut = magnitude_cut(log_mstar=post_sample, z=zgal[i], rmag_cut=23.5, plot=False, z_values=post_z_values,  space_dist=space_dist)
+                ml_sample, ind_magcut = magnitude_cut(log_mstar=post_sample, z=zgal[i], rmag_cut=rmag_cut, plot=False, z_values=post_z_values,  space_dist=space_dist)
                 MtoL_samples.append(ml_sample); magcut_ind_flags.append(ind_magcut)
                 if activate_plot:
                     plt.hist(post_sample, cumulative=True, density=True, histtype='step', ls='--', color='red', bins=massbins, lw=1., alpha=alpha, zorder=0)
@@ -1145,13 +1147,13 @@ def mock_realization(zbins = [0.,0.3, 0.7],
                 logm_samples.append(post_sample)
                 if space_dist in ['delta', 'delta_at_zright'] : post_z_values = None
                 try :    
-                    color_sample, Kcorr_sample, ml_sample, mlg_rest_sample, ind_magcut = magnitude_cut(log_mstar=post_sample, log_sfr=log_sfr, log_sfr_mode=log_sfr_mode, z=zgal[i], z_values=post_z_values, rmag_cut=23.5, plot=False, space_dist=space_dist, ml_sampling=ml_sampling, density_sfr_color=density_sfr_color, sfr_grid=sfr_grid, color_gr_grid=color_gr_grid, bimodal_gr=bimodal_gr, all_red=all_red, all_blue=all_blue, Kr_correction=Kr_correction)
+                    color_sample, Kcorr_sample, ml_sample, mlg_rest_sample, ind_magcut = magnitude_cut(log_mstar=post_sample, log_sfr=log_sfr, log_sfr_mode=log_sfr_mode, z=zgal[i], z_values=post_z_values, rmag_cut=rmag_cut, plot=False, space_dist=space_dist, ml_sampling=ml_sampling, density_sfr_color=density_sfr_color, sfr_grid=sfr_grid, color_gr_grid=color_gr_grid, bimodal_gr=bimodal_gr, all_red=all_red, all_blue=all_blue, Kr_correction=Kr_correction)
                     MtoL_samples.append(ml_sample)
                     MtoLg_rest_samples.append(mlg_rest_sample)
                     color_samples.append(color_sample)
                     Kcorr_samples.append(Kcorr_sample)
                 except :
-                    ml_sample, ind_magcut = magnitude_cut(log_mstar=post_sample, log_sfr=log_sfr, log_sfr_mode=log_sfr_mode, z=zgal[i], z_values = post_z_values, rmag_cut=23.5, plot=False, space_dist=space_dist, ml_sampling=ml_sampling, density_sfr_color=density_sfr_color, sfr_grid=sfr_grid, color_gr_grid=color_gr_grid, Kr_correction=Kr_correction)
+                    ml_sample, ind_magcut = magnitude_cut(log_mstar=post_sample, log_sfr=log_sfr, log_sfr_mode=log_sfr_mode, z=zgal[i], z_values = post_z_values, rmag_cut=rmag_cut, plot=False, space_dist=space_dist, ml_sampling=ml_sampling, density_sfr_color=density_sfr_color, sfr_grid=sfr_grid, color_gr_grid=color_gr_grid, Kr_correction=Kr_correction)
                     MtoL_samples.append(ml_sample)
                 
                 try :
